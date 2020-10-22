@@ -51,6 +51,10 @@ Python based Telegram bot to monitor and control the raspberry pi.
 
 Move your file in /opt/control-pi/raspi-control.py
 
+```
+sudo chmod +x /opt/control-pi/control-pi.py
+```
+
 ## Create Service File
 The file must have .service extension under /lib/systemd/system/ directory
 
