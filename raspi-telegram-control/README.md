@@ -66,13 +66,16 @@ $ sudo vi /lib/systemd/system/raspi-control.service
 ```
 [Unit]
 Description=Test Service
-After=multi-user.target
+After=network.target
 Conflicts=getty@tty1.service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 /opt/control-pi/raspi-control.py
-StandardInput=tty-force
+RemainAfterExit=yes
+Restart=always
+ExecStart=python3 /opt/control-pi/raspi-control.py
+WorkingDirectory=/opt/control-pi
+User=root
 
 [Install]
 WantedBy=multi-user.target
