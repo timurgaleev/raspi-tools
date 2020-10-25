@@ -47,7 +47,7 @@ Python based Telegram bot to monitor and control the raspberry pi.
 
 
 
-# How to Setup Python Script Autorun As a Service in Ubuntu 
+# How to Setup Python Script Autorun As a Service in Debian 
 
 Move your file in /opt/control-pi/raspi-control.py
 
