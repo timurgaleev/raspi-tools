@@ -201,6 +201,18 @@ docker() {
     _bar
 }
 
+docker-compose() {
+    sudo apt-get install libffi-dev libssl-dev
+    sudo apt install python3-dev
+    sudo apt-get install -y python3 python3-pip
+    sudo pip3 install docker-compose
+    sudo systemctl enable docker
+
+    _bar
+    docker-compose version
+    _bar
+}
+
 wifi() {
     SSID="$1"
     PASS="$2"
@@ -277,6 +289,9 @@ case ${CMD} in
         ;;
     docker)
         docker
+        ;;
+    docker-compose)
+        docker-compose
         ;;
     date|localtime)
         localtime
