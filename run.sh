@@ -275,9 +275,9 @@ case ${CMD} in
     node|nodejs)
         node
         ;;
-    # docker)
-    #     docker
-    #     ;;
+    docker)
+        docker
+        ;;
     date|localtime)
         localtime
         ;;
