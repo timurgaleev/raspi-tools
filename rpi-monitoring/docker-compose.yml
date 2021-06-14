@@ -76,7 +76,7 @@ services:
     depends_on:
       - node-exporter
     volumes:
-      - /home/motioneye/prometheus/:/etc/prometheus/
+      - ./prometheus/:/etc/prometheus/
       - prometheus:/prometheus
     networks:
       - monitoring
