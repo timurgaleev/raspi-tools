@@ -3,7 +3,7 @@ version: "3"
 services:
 
   proxy:
-    image: proxy:latest
+    # image: proxy:latest
     build:
       context: .
       dockerfile: proxy/Dockerfile
