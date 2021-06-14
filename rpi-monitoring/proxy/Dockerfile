@@ -10,8 +10,8 @@ ENV PROXY_UPSTREAM_GRAFANA_HOST=grafana
 ENV PROXY_UPSTREAM_GRAFANA_PORT=3000
 
 COPY proxy/nginx.conf.tpl /etc/nginx/nginx.conf.tpl
-COPY proxy/nginx.crt /etc/nginx/nginx.crt
-COPY proxy/nginx.key /etc/nginx/nginx.key
+# COPY proxy/nginx.crt /etc/nginx/nginx.crt
+# COPY proxy/nginx.key /etc/nginx/nginx.key
 
 COPY proxy/main.sh /main.sh
 RUN chmod +x /main.sh
