@@ -24,15 +24,15 @@ http {
 
   server {
     listen 80;
-  #  return 301 https://$host$request_uri;
+  #   return 301 https://$host$request_uri;
   # }
 
   # server {
-  #  listen 443;
-  #  ssl on;
-  #  ssl_certificate /etc/nginx/nginx.crt;
-  #  ssl_certificate_key /etc/nginx/nginx.key;
-  #  ssl_protocols TLSv1.2;
+  #   listen 443;
+  #   ssl on;
+  #   ssl_certificate /etc/nginx/nginx.crt;
+  #   ssl_certificate_key /etc/nginx/nginx.key;
+  #   ssl_protocols TLSv1.2;
 
     log_subrequest on;
 

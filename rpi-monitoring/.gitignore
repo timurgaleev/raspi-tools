@@ -1,2 +1,2 @@
-/docker/proxy/nginx.crt
-/docker/proxy/nginx.key
+/proxy/nginx.crt
+/proxy/nginx.key
