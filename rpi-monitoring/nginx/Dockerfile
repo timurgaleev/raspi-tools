@@ -9,11 +9,11 @@ ENV PROXY_UPSTREAM_PROMETHEUS_PORT=9090
 ENV PROXY_UPSTREAM_GRAFANA_HOST=grafana
 ENV PROXY_UPSTREAM_GRAFANA_PORT=3000
 
-COPY proxy/nginx.conf.tpl /etc/nginx/nginx.conf.tpl
-# COPY proxy/nginx.crt /etc/nginx/nginx.crt
-# COPY proxy/nginx.key /etc/nginx/nginx.key
+COPY nginx/nginx.conf.tpl /etc/nginx/nginx.conf.tpl
+# COPY nginx/nginx.crt /etc/nginx/nginx.crt
+# COPY nginx/nginx.key /etc/nginx/nginx.key
 
-COPY proxy/main.sh /main.sh
+COPY nginx/main.sh /main.sh
 RUN chmod +x /main.sh
 
 EXPOSE 80

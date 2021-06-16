@@ -2,17 +2,12 @@ version: "3"
 
 services:
 
-  proxy:
-    # image: proxy:latest
+  nginx:
+    image: proxy:latest
     build:
       context: .
-      dockerfile: proxy/Dockerfile
-    restart: always
-    hostname: proxy
-    container_name: proxy
-    depends_on:
-      - prometheus
-      - node-exporter
+      dockerfile: nginx/Dockerfile
+    container_name: nginx
     environment:
       PROXY_UPSTREAM_NODEEXPORTER_HOST: node-exporter
       PROXY_UPSTREAM_NODEEXPORTER_PORT: 9100
@@ -22,15 +17,19 @@ services:
       PROXY_UPSTREAM_PROMETHEUS_PORT: 9090
       PROXY_UPSTREAM_GRAFANA_HOST: grafana
       PROXY_UPSTREAM_GRAFANA_PORT: 3000
+    restart: unless-stopped
+    hostname: nginx
+    depends_on:
+      - prometheus
+      - node-exporter
     ports:
-     - 127.0.0.1:80:80
-     - 127.0.0.1:443:443
+      - 127.0.0.1:80:80
+      - 127.0.0.1:443:443
     networks:
-      - monitoring
+      - monitor-net
 
   node-exporter:
     image: prom/node-exporter:latest
-    restart: always
     hostname: node-exporter
     container_name: node-exporter
     user: "1001:1001"
@@ -40,14 +39,17 @@ services:
       - /:/rootfs:ro
     command:
       - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
       - '--path.sysfs=/host/sys'
       - --collector.tcpstat
       - --collector.wifi
       - --collector.processes
-      - --collector.filesystem.ignored-mount-points
-      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+    restart: unless-stopped
     networks:
-      - monitoring
+      - monitor-net
+    labels:
+      org.label-schema.group: "monitoring"
 
   cadvisor:
     image: cadvisor:latest
@@ -56,7 +58,7 @@ services:
       dockerfile: cadvisor/Dockerfile
       args:
         VERSION: "v0.38.6"
-    restart: always
+    restart: unless-stopped
     hostname: cadvisor
     container_name: cadvisor
     volumes:
@@ -65,44 +67,74 @@ services:
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
     networks:
-      - monitoring
+      - monitor-net
+    labels:
+      org.label-schema.group: "monitoring"
 
   prometheus:
     image: prom/prometheus:latest
-    restart: always
-    hostname: prometheus
     container_name: prometheus
     user: "65534:65534"
-    depends_on:
-      - node-exporter
     volumes:
-      - ./prometheus/:/etc/prometheus/
+      - ./prometheus:/etc/prometheus
       - prometheus:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    depends_on:
+          - node-exporter
     networks:
-      - monitoring
+      - monitor-net
+    labels:
+      org.label-schema.group: "monitoring"
+    deploy:
+      resources:
+        limits:
+          memory: 200M
+        reservations:
+          memory: 100M
+    healthcheck:
+      test: 'wget -q --spider http://127.0.0.1:9090/-/ready || exit 1'
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   grafana:
     image: grafana/grafana:latest
-    restart: always
-    hostname: grafana
     container_name: grafana
-    user: "1001:1001"
-    depends_on:
-      - prometheus
+    volumes:
+      - grafana:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
-      GF_USERS_ALLOW_SIGN_UP: "false"
       GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s:%(http_port)s/grafana/"
+      GF_USERS_ALLOW_SIGN_UP: "false"
       GF_SERVER_SERVE_FROM_SUB_PATH: "true"
-    volumes:
-      - grafana:/var/lib/grafana
+    restart: unless-stopped
+    user: "1001:1001"
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: 'wget -q --spider http://127.0.0.1:3000/api/health || exit 1'
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
     networks:
-      - monitoring
+      - monitor-net
+    labels:
+      org.label-schema.group: "monitoring"
 
 volumes:
   prometheus:
   grafana:
 
 networks:
-  monitoring:
+  monitor-net:

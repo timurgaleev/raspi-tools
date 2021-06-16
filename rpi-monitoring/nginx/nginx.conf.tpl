@@ -1,4 +1,9 @@
-events { worker_connections 1024; }
+worker_processes 1;
+
+events {
+  worker_connections 1024;
+  use epoll;
+}
 
 http {
 
@@ -33,9 +38,7 @@ http {
   #   ssl_certificate /etc/nginx/nginx.crt;
   #   ssl_certificate_key /etc/nginx/nginx.key;
   #   ssl_protocols TLSv1.2;
-
     log_subrequest on;
-
     location /node-exporter/ {
       proxy_pass http://nodeexporter_svc/;
       proxy_http_version 1.1;
