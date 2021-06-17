@@ -3,107 +3,60 @@ version: "3"
 services:
 
   nginx:
-    image: proxy:latest
+    image: nginx:latest
     build:
       context: .
       dockerfile: nginx/Dockerfile
     container_name: nginx
     environment:
-      PROXY_UPSTREAM_NODEEXPORTER_HOST: node-exporter
-      PROXY_UPSTREAM_NODEEXPORTER_PORT: 9100
-      PROXY_UPSTREAM_CADVISOR_HOST: cadvisor
-      PROXY_UPSTREAM_CADVISOR_PORT: 8080
-      PROXY_UPSTREAM_PROMETHEUS_HOST: prometheus
-      PROXY_UPSTREAM_PROMETHEUS_PORT: 9090
+      PROXY_UPSTREAM_INFLUXDB_HOST: influxdb
+      PROXY_UPSTREAM_INFLUXDB_PORT: 8086
       PROXY_UPSTREAM_GRAFANA_HOST: grafana
       PROXY_UPSTREAM_GRAFANA_PORT: 3000
     restart: unless-stopped
     hostname: nginx
     depends_on:
-      - prometheus
-      - node-exporter
+      - influxdb
+      - telegraf
     ports:
       - 127.0.0.1:80:80
       - 127.0.0.1:443:443
     networks:
       - monitor-net
 
-  node-exporter:
-    image: prom/node-exporter:latest
-    hostname: node-exporter
-    container_name: node-exporter
-    user: "1001:1001"
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.rootfs=/rootfs'
-      - '--path.sysfs=/host/sys'
-      - --collector.tcpstat
-      - --collector.wifi
-      - --collector.processes
-      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+  influxdb:
+    labels:
+      docker.group: "RPI Monitor"
+      docker.app: "telegraf"
+      org.label-schema.group: "monitoring"
+    container_name: influxdb
+    hostname: influxdb
+    image: influxdb:1.8.3
     restart: unless-stopped
+    volumes:
+      - "influxdb:/var/influxdb/data"
+    env_file:
+      - ./credentials.env
     networks:
       - monitor-net
-    labels:
-      org.label-schema.group: "monitoring"
 
-  cadvisor:
-    image: cadvisor:latest
-    build:
-      context: .
-      dockerfile: cadvisor/Dockerfile
-      args:
-        VERSION: "v0.38.6"
-    restart: unless-stopped
-    hostname: cadvisor
-    container_name: cadvisor
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:rw
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-    networks:
-      - monitor-net
+  telegraf:
     labels:
+      docker.group: "RPI Monitor"
+      docker.app: "telegraf"
       org.label-schema.group: "monitoring"
-
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    user: "65534:65534"
-    volumes:
-      - ./prometheus:/etc/prometheus
-      - prometheus:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=200h'
-      - '--web.enable-lifecycle'
+    container_name: telegraf
+    hostname: telegraf
+    image: tty0/isp_telegraf:1.15.3
     restart: unless-stopped
+    volumes:
+      - "./telegraf/conf/telegraf.conf:/etc/telegraf/telegraf.conf"
+    env_file:
+      - ./credentials.env
     depends_on:
-          - node-exporter
+      - "influxdb"
     networks:
       - monitor-net
-    labels:
-      org.label-schema.group: "monitoring"
-    deploy:
-      resources:
-        limits:
-          memory: 200M
-        reservations:
-          memory: 100M
-    healthcheck:
-      test: 'wget -q --spider http://127.0.0.1:9090/-/ready || exit 1'
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
 
   grafana:
     image: grafana/grafana:latest
@@ -117,10 +70,11 @@ services:
       GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s:%(http_port)s/grafana/"
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+      GF_INSTALL_PLUGINS: "https://grafana.com/api/plugins/gowee-traceroutemap-panel/versions/0.2.3/download;gowee-traceroutemap-panel"
     restart: unless-stopped
     user: "1001:1001"
     depends_on:
-      - prometheus
+      - influxdb
     healthcheck:
       test: 'wget -q --spider http://127.0.0.1:3000/api/health || exit 1'
       interval: 30s
@@ -133,7 +87,7 @@ services:
       org.label-schema.group: "monitoring"
 
 volumes:
-  prometheus:
+  influxdb:
   grafana:
 
 networks:
