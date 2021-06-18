@@ -40,9 +40,7 @@ services:
       - monitor-net
 
   telegraf:
-    build:
-      context: .
-      dockerfile: telegraf/Dockerfile
+    image: telegraf
     labels:
       docker.group: "RPI Monitor"
       docker.app: "telegraf"
@@ -52,6 +50,14 @@ services:
     restart: unless-stopped
     volumes:
       - "./telegraf/conf/telegraf.conf:/etc/telegraf/telegraf.conf"
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+     - /sys:/rootfs/sys:ro
+     - /proc:/rootfs/proc:ro
+     - /etc:/rootfs/etc:ro
+    environment:
+      HOST_PROC: /rootfs/proc
+      HOST_SYS: /rootfs/sys
+      HOST_ETC: /rootfs/etc
     env_file:
       - ./credentials.env
     depends_on:
