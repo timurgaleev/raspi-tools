@@ -3,7 +3,6 @@ version: "3"
 services:
 
   nginx:
-    image: nginx:latest
     build:
       context: .
       dockerfile: nginx/Dockerfile
@@ -41,20 +40,22 @@ services:
       - monitor-net
 
   telegraf:
+    build:
+      context: .
+      dockerfile: telegraf/Dockerfile
     labels:
       docker.group: "RPI Monitor"
       docker.app: "telegraf"
       org.label-schema.group: "monitoring"
     container_name: telegraf
     hostname: telegraf
-    image: tty0/isp_telegraf:1.15.3
     restart: unless-stopped
     volumes:
       - "./telegraf/conf/telegraf.conf:/etc/telegraf/telegraf.conf"
     env_file:
       - ./credentials.env
     depends_on:
-      - "influxdb"
+      - influxdb
     networks:
       - monitor-net
 

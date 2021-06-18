@@ -2,7 +2,9 @@ FROM telegraf:1.15.3
 
 ARG ARCH
 
-COPY ./bin/entrypoint.sh /entrypoint.sh
+LABEL component="telegraf"
+
+COPY ./telegraf/bin/entrypoint.sh /entrypoint.sh
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
   mtr=0.92-2 \
