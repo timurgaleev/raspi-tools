@@ -42,8 +42,8 @@ http {
       proxy_redirect off;
     }
 
-    location /grafana/(.*) {
-      proxy_pass http://grafana_svc/;
+    location ~ /grafana/(.*) {
+      proxy_pass http://grafana_svc/$1;
       proxy_http_version 1.1;
       proxy_set_header Upgrade $http_upgrade;
       proxy_set_header Connection 'upgrade';
