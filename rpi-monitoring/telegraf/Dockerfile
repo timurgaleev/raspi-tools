@@ -1,19 +1,10 @@
-FROM telegraf:1.15.3
+FROM arm32v7/telegraf:1.17.2
 
-ARG ARCH
+ADD qemu-arm-static /usr/bin
+ADD raspi.list /etc/apt/sources.list.d/raspi.list
+RUN wget -qO - http://archive.raspberrypi.org/debian/raspberrypi.gpg.key | apt-key add -
 
-LABEL component="telegraf"
-
-COPY ./telegraf/bin/entrypoint.sh /entrypoint.sh
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-  mtr=0.92-2 \
-  speedtest-cli=2.0.2-1+deb10u1 && \
-  rm -rf /var/lib/apt/lists/* && \
-  usermod -G video telegraf
-
-EXPOSE 8125/udp 8092/udp 8094
-
-ENTRYPOINT ["/entrypoint.sh"]
-
-CMD ["telegraf"]
+# update and install the raspberry pi userland tools
+RUN apt-get update && apt-get -y dist-upgrade && \
+  apt-get install -y libraspberrypi-bin && \
+  rm -rf /var/lib/apt/lists/*
