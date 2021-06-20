@@ -29,7 +29,7 @@ services:
     hostname: influxdb
     labels:
       docker.group: "RPI Monitor"
-      docker.app: "telegraf"
+      docker.app: "influxdb"
       org.label-schema.group: "monitoring"
     restart: unless-stopped
     volumes:
