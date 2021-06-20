@@ -30,9 +30,10 @@ http {
   #   ssl_protocols TLSv1.2;
     log_subrequest on;
 
-    location /influxdb/ {
+    location ~ /influxdb/ {
       proxy_pass http://influxdb_svc/;
       proxy_http_version 1.1;
+      proxy_read_timeout 90;
       proxy_set_header Upgrade $http_upgrade;
       proxy_set_header Connection 'upgrade';
       proxy_set_header Host $host;
@@ -42,9 +43,10 @@ http {
       proxy_redirect off;
     }
 
-    location ~ /grafana/(.*) {
-      proxy_pass http://grafana_svc/$1;
+    location ~ /grafana/ {
+      proxy_pass http://grafana_svc/;
       proxy_http_version 1.1;
+      proxy_read_timeout 90;
       proxy_set_header Upgrade $http_upgrade;
       proxy_set_header Connection 'upgrade';
       proxy_set_header Host $host;
