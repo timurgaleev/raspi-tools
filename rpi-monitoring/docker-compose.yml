@@ -40,7 +40,9 @@ services:
       - monitor-net
 
   telegraf:
-    image: telegraf:latest
+    build:
+      context: .
+      dockerfile: telegraf/Dockerfile
     container_name: telegraf
     hostname: telegraf
     labels:
