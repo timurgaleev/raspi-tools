@@ -173,7 +173,7 @@ aliases() {
 }
 
 apache() {
-    sudo apt install -y apache2 php5
+    sudo apt install -y apache2 php7.4
 
     _bar
     apache2 -version
