@@ -109,7 +109,7 @@ upgrade() {
 init() {
     sudo apt update
     sudo apt upgrade -y
-    sudo apt install -y curl wget unzip vim jq dialog \
+    sudo apt install -y curl wget unzip vim jq dialog mc \
                         fonts-unfonts-core p7zip-full python3-pip \
                         awscli
     sudo apt clean all
